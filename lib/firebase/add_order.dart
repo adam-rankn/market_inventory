@@ -1,26 +1,41 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/product.dart';
 
-Future<void> _finalizeOrder() async {
+Future<void> updateSalesTotals(String market,String item,int num , double saleAmount) async {
   // Assume this is your Firestore instance
   FirebaseFirestore firestore = FirebaseFirestore.instance;
+  DateTime now = DateTime.now().toUtc();
+  DateTime dat = DateTime(now.year, now.month, now.day);
+  String date = dat.toIso8601String().substring(0,10);
 
-  // Assume this is the total from the current order
-  double orderTotal = calculateOrderTotal();
+
+  // Get a reference to the item's sales totals document for the specified date
+  DocumentReference itemRef = firestore
+      .collection('locations')
+      .doc(market)
+      .collection('salesTotals')
+      .doc(date)
+      .collection('items')
+      .doc(item);
 
   // Start a Firestore transaction
-  await firestore.runTransaction((transaction) async {
-    // Get a reference to the sales totals document
-    DocumentReference salesRef = firestore.collection('salesTotals').doc('today');
 
-    // Get the current sales total
-    DocumentSnapshot salesSnapshot = await transaction.get(salesRef);
+  try {
+    await firestore.runTransaction((transaction) async {
+      // Get the current sales totals
+      DocumentSnapshot snapshot = await transaction.get(itemRef);
 
-    // Calculate the new sales total
-    double newSalesTotal = salesSnapshot.exists
-        ? (salesSnapshot.data()?['total'] ?? 0) + orderTotal
-        : orderTotal;
+      // Cast snapshot data to a Map
+      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic> ?? {};
 
-    // Update the sales totals document with the new total
-    transaction.set(salesRef, {'total': newSalesTotal});
-  });
+      // Calculate the new total sales and times sold
+      double newTotalSales = (data['totalSales'] ?? 0) + saleAmount;
+      int newTimesSold = (data['timesSold'] ?? 0) + num;
+
+      // Update the sales totals document with the new total sales and times sold
+      transaction.set(itemRef, {'totalSales': newTotalSales, 'timesSold': newTimesSold});
+    });
+  } catch (e) {
+    print("Error in updateSalesTotals: $e");
+  }
 }

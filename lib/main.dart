@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'firebase/add_order.dart';
 import 'sales.dart';
 import 'setup.dart';
 import 'models/product.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -78,6 +83,8 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
   final _locations = ['St Albert', 'Downtown', 'Shop','Strathcona'];
 
 
+
+
   void _addToOrder(Product product) {
     setState(() {
       if (_currentOrder.containsKey(product)) {
@@ -113,8 +120,15 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
     });
   }
 
-  void _finalizeOrder() {
+  void _finalizeOrder() async {
     // perform actions to finalize order
+    List<Future> updates = [];
+    _currentOrder.forEach((product, count) {
+      // Access the key (Product) using the variable 'product'
+      // Access the value (int) using the variable 'count'
+      updates.add(updateSalesTotals(_selectedLocation,product.title,count,product.price*count));
+    });
+    await Future.wait(updates);
   }
 
   final TextEditingController _searchController = TextEditingController();
@@ -281,7 +295,7 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                       Text('\$${_totalPrice.toStringAsFixed(2)}'),
                     ],
                   ),
-                  Row(
+/*                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Discount:'),
@@ -304,15 +318,57 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                         ],
                       ),
                     ],
-                  ),
+                  ),*/
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Discount Amount:'),
-                      Text(
-                        _discountIsPercentage
-                            ? '${_discount.toStringAsFixed(2)}%'
-                            : '\$${_discount.toStringAsFixed(2)}',
+                      const Text('Discount:'),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal:48.0),
+                                child: TextField(
+                                 // controller: _discountController,
+                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter discount',
+                                  ),
+                                  onChanged: (value) {
+                                    // Update _discount here if needed
+                                    // _discount = double.parse(value);
+                                  },
+                                ),
+                              ),
+                            ),
+                            DropdownButtonHideUnderline(  // Add this
+                              child: DropdownButton<String>(
+                                value: _discountIsPercentage ? '%' : '\$',
+                                items: <String>['%', '\$'].map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Container(  // Add this
+                                      height: 60,  // Same as the height of the Row
+                                      alignment: Alignment.center,  // To center the text vertically
+                                      child: Text(
+                                        value,
+                                        style: const TextStyle(
+                                          fontSize: 32,  // Set your desired font size here
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    _discountIsPercentage = (value == '%');
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
