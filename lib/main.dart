@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       home: FoodTruckScreen(),
       routes: {
     // Define the routes for the other pages
-    '/sales': (context) => const Sales(),
+    '/sales': (context) =>  Sales(),
     '/setup': (context) => const Setup(),
     },
     );
@@ -79,7 +79,7 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
   double _totalPrice = 0.0;
   double _discount = 0.0;
   bool _discountIsPercentage = true;
-  String _selectedLocation = 'Location 1';  // Default location
+  String _selectedLocation = 'Downtown';
   final _locations = ['St Albert', 'Downtown', 'Shop','Strathcona'];
 
 
@@ -164,29 +164,9 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
           }).toList(),
         ),
         actions: <Widget>[
-          PopupMenuButton<String>(
-            onSelected: (String result) {
-              // Handle your location change here
-              setState(() {
-                // For instance, you could do something like this
-                // to store the selected location:
-                _selectedLocation = result;
-              });
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'Location 1',
-                child: Text('Location 1'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Location 2',
-                child: Text('Location 2'),
-              ),
-              // Add as many locations as you need
-            ],
-          ),
+
           IconButton(
-            icon: const Icon(Icons.add_alert),
+            icon: const Icon(Icons.attach_money_outlined),
             tooltip: 'Sales',
             onPressed: () {
               // Navigate to the next page.
@@ -197,7 +177,7 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.navigate_next),
+            icon: const Icon(Icons.settings),
             tooltip: 'Setup',
             onPressed: () {
               // Navigate to another page.
@@ -295,30 +275,6 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                       Text('\$${_totalPrice.toStringAsFixed(2)}'),
                     ],
                   ),
-/*                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Discount:'),
-                      DropdownButton<bool>(
-                        value: _discountIsPercentage,
-                        onChanged: (value) {
-                          setState(() {
-                            _discountIsPercentage = value!;
-                          });
-                        },
-                        items: const [
-                          DropdownMenuItem<bool>(
-                            value: true,
-                            child: Text('%'),
-                          ),
-                          DropdownMenuItem<bool>(
-                            value: false,
-                            child: Text('\$'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),*/
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -331,8 +287,8 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                                 padding: const EdgeInsets.symmetric(horizontal:48.0),
                                 child: TextField(
                                  // controller: _discountController,
-                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                  decoration: InputDecoration(
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  decoration: const InputDecoration(
                                     hintText: 'Enter discount',
                                   ),
                                   onChanged: (value) {
@@ -389,11 +345,18 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Container(
-                      alignment: Alignment.center,  // Add this
+                      alignment: Alignment.center,
                       child: SizedBox(height: 60.0, width: 400.0,
                         child: ElevatedButton(
-                          //onPressed: _finalizeOrder,
-                          onPressed: () { _finalizeOrder; },
+                          onPressed: () {
+                            _finalizeOrder();
+                            setState(() {
+                              _currentOrder.clear();
+                               _totalPrice = 0.0;
+                              _discount = 0.0;
+                              _discountIsPercentage = true;
+                            });
+                          },
                           child: const Text('Finalize Order'),
                         ),
                       ),

@@ -11,11 +11,7 @@ Future<void> updateSalesTotals(String market,String item,int num , double saleAm
 
   // Get a reference to the item's sales totals document for the specified date
   DocumentReference itemRef = firestore
-      .collection('locations')
-      .doc(market)
-      .collection('salesTotals')
-      .doc(date)
-      .collection('items')
+      .collection('sales')
       .doc(item);
 
   // Start a Firestore transaction
@@ -26,14 +22,24 @@ Future<void> updateSalesTotals(String market,String item,int num , double saleAm
       DocumentSnapshot snapshot = await transaction.get(itemRef);
 
       // Cast snapshot data to a Map
-      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic> ?? {};
+      //Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>? ?? {};
 
       // Calculate the new total sales and times sold
-      double newTotalSales = (data['totalSales'] ?? 0) + saleAmount;
-      int newTimesSold = (data['timesSold'] ?? 0) + num;
+      //double newTotalSales = (data['totalSales'] ?? 0) + saleAmount;
+      //int newTimesSold = (data['timesSold'] ?? 0) + num;
+      CollectionReference sales = FirebaseFirestore.instance.collection('sales');
 
       // Update the sales totals document with the new total sales and times sold
-      transaction.set(itemRef, {'totalSales': newTotalSales, 'timesSold': newTimesSold});
+      Map<String, dynamic> data = {
+        'date': date,
+        'location': market,
+        'item': item,
+        'quantity': num,
+        'totalPrice': saleAmount,
+      };
+
+      // Add the document to the collection
+      transaction.set(sales.doc(), data);
     });
   } catch (e) {
     print("Error in updateSalesTotals: $e");
