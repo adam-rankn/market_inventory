@@ -4,6 +4,7 @@ import 'sales.dart';
 import 'setup.dart';
 import 'models/product.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'data/locations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
@@ -58,6 +59,12 @@ class FoodTruckScreen extends StatefulWidget {
 
 class _FoodTruckScreenState extends State<FoodTruckScreen> {
   final List<Product> _products = [
+    Product(title: 'Tzatziki 235g', image: 'assets/images/water.png', price: 7.0),
+    Product(title: 'Tzatziki 500g', image: 'assets/images/fries.png', price: 3.0),
+    Product(title: 'Tiro-Kafterio', image: 'assets/images/fries.png', price: 7.0),
+    Product(title: 'Hummus 250g', image: 'assets/images/onion_rings.png', price: 5.0),
+    Product(title: 'Hummus 500g', image: 'assets/images/soft_drink.png', price: 3.0),
+
     Product(title: 'Saganaki', image: 'assets/images/saganaki.png', price: 10.0),
     Product(title: 'Dolmades', image: 'assets/images/dolmades.png', price: 8.0),
     Product(title: 'Gyros', image: 'assets/images/hot_dog.png', price: 6.0),
@@ -68,10 +75,8 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
     Product(title: 'Keftedes', image: 'assets/images/fries.png', price: 10.0),
     Product(title: 'Pastichio', image: 'assets/images/onion_rings.png', price: 15.0),
     Product(title: 'Tarama', image: 'assets/images/soft_drink.png', price: 7.0),
-    Product(title: 'Tzatziki 235g', image: 'assets/images/water.png', price: 7.0),
-    Product(title: 'Tzatziki 500g', image: 'assets/images/fries.png', price: 3.0),
-    Product(title: 'Hummus 250g', image: 'assets/images/onion_rings.png', price: 5.0),
-    Product(title: 'Hummus 500g', image: 'assets/images/soft_drink.png', price: 3.0),
+
+
     Product(title: 'Feta', image: 'assets/images/water.png', price: 4.0),
   ];
 
@@ -80,8 +85,8 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
   double _discount = 0.0;
   bool _discountIsPercentage = true;
   String _selectedLocation = 'Downtown';
-  final _locations = ['St Albert', 'Downtown', 'Shop','Strathcona'];
 
+  double grandTotal = 0;
 
 
 
@@ -110,16 +115,6 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
     });
   }
 
-  void _addDiscount(double value, bool isPercentage) {
-    setState(() {
-      if (isPercentage) {
-        _discount = value / 100.0 * _totalPrice;
-      } else {
-        _discount = value;
-      }
-    });
-  }
-
   void _finalizeOrder() async {
     // perform actions to finalize order
     List<Future> updates = [];
@@ -131,18 +126,36 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
     await Future.wait(updates);
   }
 
+  void updateTotals(){
+
+    setState(() {
+      if (_discountIsPercentage) {
+        grandTotal = _totalPrice * (1 - _discount / 100);
+      } else {
+        grandTotal = _totalPrice - _discount;
+      }
+    });
+  }
+
   final TextEditingController _searchController = TextEditingController();
 
-  // Update this function to filter the list of products.
   List<Product> _getFilteredProducts() {
+    List<Product> products;
+
     if (_searchController.text.isEmpty) {
-      return _products;
+      products = _products;
+    } else {
+      products = _products
+          .where((product) => product.title
+          .toLowerCase()
+          .contains(_searchController.text.toLowerCase()))
+          .toList();
     }
-    return _products
-        .where((product) => product.title
-        .toLowerCase()
-        .contains(_searchController.text.toLowerCase()))
-        .toList();
+
+    // Sort the products list based on the title.
+    products.sort((a, b) => a.title.compareTo(b.title));
+
+    return products;
   }
 
   @override
@@ -156,7 +169,7 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
               _selectedLocation = newValue!;
             });
           },
-          items: _locations.map<DropdownMenuItem<String>>((String value) {
+          items: locations.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
               child: Text(value),
@@ -206,7 +219,9 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                         suffixIcon: IconButton(
                           onPressed: () {
                             _searchController.clear();
-                            setState(() {});  // This triggers a rebuild
+                            setState(() {
+                              updateTotals();
+                            });  // This triggers a rebuild
                           },
                           icon: const Icon(Icons.clear),
                         ),
@@ -226,7 +241,11 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                               width: 120,
                               height: 36,
                               child: ElevatedButton(
-                                onPressed: () => _addToOrder(product),
+                                onPressed: () {
+                                  _addToOrder(product);
+                                  updateTotals();
+                                },
+
                                 child: const Text('Add'),
                               )
                           ),
@@ -260,7 +279,10 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                         return ListTile(
                           title: Text('$title x $quantity'),
                           trailing: ElevatedButton(
-                            onPressed: () => _removeFromOrder(product),
+                            onPressed: () {
+                              _removeFromOrder(product);
+                              updateTotals();
+                            },
                             child: const Text('Remove'),
                           ),
                         );
@@ -292,25 +314,27 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                                     hintText: 'Enter discount',
                                   ),
                                   onChanged: (value) {
-                                    // Update _discount here if needed
-                                    // _discount = double.parse(value);
+                                    setState(() {
+                                      _discount = double.parse(value);
+                                      updateTotals();
+                                    });
                                   },
                                 ),
                               ),
                             ),
-                            DropdownButtonHideUnderline(  // Add this
+                            DropdownButtonHideUnderline(
                               child: DropdownButton<String>(
                                 value: _discountIsPercentage ? '%' : '\$',
                                 items: <String>['%', '\$'].map((String value) {
                                   return DropdownMenuItem<String>(
                                     value: value,
-                                    child: Container(  // Add this
+                                    child: Container(
                                       height: 60,  // Same as the height of the Row
                                       alignment: Alignment.center,  // To center the text vertically
                                       child: Text(
                                         value,
                                         style: const TextStyle(
-                                          fontSize: 32,  // Set your desired font size here
+                                          fontSize: 32,
                                         ),
                                       ),
                                     ),
@@ -319,6 +343,7 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                                 onChanged: (String? value) {
                                   setState(() {
                                     _discountIsPercentage = (value == '%');
+                                    updateTotals();
                                   });
                                 },
                               ),
@@ -329,6 +354,7 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                     ],
                   ),
                   const SizedBox(height: 16.0),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -336,8 +362,9 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                         'Grand Total:',
                         style: TextStyle(fontSize: 24.0),
                       ),
+
                       Text(
-                        '\$${(_totalPrice - _discount).toStringAsFixed(2)}',
+                        '\$${grandTotal.toStringAsFixed(2)}',
                         style: const TextStyle(fontSize: 24.0),
                       ),
                     ],

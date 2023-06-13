@@ -31,7 +31,7 @@ Future<void> updateSalesTotals(String market,String item,int num , double saleAm
 
       // Update the sales totals document with the new total sales and times sold
       Map<String, dynamic> data = {
-        'date': date,
+        'date': FieldValue.serverTimestamp(),
         'location': market,
         'item': item,
         'quantity': num,
