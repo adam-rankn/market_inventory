@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'data/categories.dart';
 import 'data/locations.dart';
 
 import 'firebase/get_sales.dart';
@@ -6,6 +7,8 @@ import 'models/category.dart';
 import 'models/sales_listing.dart';
 
 class Sales extends StatefulWidget {
+  const Sales({super.key});
+
   @override
   _SalesFilterScreenState createState() => _SalesFilterScreenState();
 }
@@ -21,21 +24,21 @@ class _SalesFilterScreenState extends State<Sales> {
   double totalSalesPrice = 0.0;
 
   Map<String, Category> categories = {};
-  List<Category> categoryList = [];
+  List<Category> categoryList = categoriesList;
 
   void loadSales([String name = 'DAY']) async {
     products = await getSales(name);
     updateSales();
+    combineCategories(displayProducts);
     setState(() {});  // trigger a rebuild
-    combineCategories();
   }
 
   void updateSales() {
     filterSalesByLocation();
     combineSales();
     totalSalesPrice = displayProducts.fold(0.0, (sum, item) => sum + item.price);
+    combineCategories(displayProducts);
     setState(() {});
-    combineCategories();
   }
 
   @override
@@ -47,7 +50,7 @@ class _SalesFilterScreenState extends State<Sales> {
   void combineSales() {
     Map<String, Sale> combinedSalesMap = {};
 
-    for (Sale sale in filteredProducts) {  
+    for (Sale sale in filteredProducts) {
       if (combinedSalesMap.containsKey(sale.title)) {
         // if the map already contains the title, add the price and number to existing values
         combinedSalesMap[sale.title]?.price += sale.price;
@@ -72,31 +75,19 @@ class _SalesFilterScreenState extends State<Sales> {
     displayProducts = combinedSales;
   }
 
-  void combineCategories() {
-    // Map for categories
-    Map<String, Category> categoryMap = {};
-
-    for (Sale sale in filteredProducts) {
-      String name = sale.title;
-      // Check if the title is a key in categoryMap, if not, initialize it
-      if (!categoryMap.containsKey(name)) {
-        categoryMap[name] = Category(
-          titles: [name],
-          totalNumber: 0,
-          totalPrice: 0.0,
-          name: '',
-        );
-        // Add the number and price of the sale to the appropriate category
-        categoryMap[name]!.totalNumber += sale.number;
-        categoryMap[name]!.totalPrice += sale.price;
+  void combineCategories(List<Sale> sales) {
+    // Loop over each sale
+    for (Sale sale in sales) {
+      // Loop over each category
+      for (Category category in categoryList) {
+        // Check if the sale's title is contained in the category's titles
+        if (category.titles.contains(sale.title)) {
+          // Update the total number and total price for the category
+          category.totalNumber += sale.number;
+          category.totalPrice += sale.price;
+        }
       }
     }
-
-    // Convert the map back to a list
-    List<Category> categories = categoryMap.values.toList();
-
-    // If needed, sort categories by title of the first product
-    categories.sort((a, b) => a.name.compareTo(b.name));
   }
 
   void filterSalesByLocation() {
@@ -187,14 +178,22 @@ class _SalesFilterScreenState extends State<Sales> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: displayProducts.length,
+              itemCount: selectedCategory == 'Product' ? displayProducts.length : categoryList.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  leading: Image.network('https://www.mygreekdish.com/wp-content/uploads/2013/10/Greek-Saganaki-recipe-Pan-seared-Greek-cheese-appetizer-scaled.jpg'),
-                  title: Text(displayProducts[index].title),
-                  subtitle: Text('Number Sold: ${displayProducts[index].number}'),
-                  trailing: Text('Sales: \$${displayProducts[index].price}'),
-                );
+                if (selectedCategory == 'Product') {
+                  return ListTile(
+                    leading: Image.network('https://www.mygreekdish.com/wp-content/uploads/2013/10/Greek-Saganaki-recipe-Pan-seared-Greek-cheese-appetizer-scaled.jpg'),
+                    title: Text(displayProducts[index].title),
+                    subtitle: Text('Number Sold: ${displayProducts[index].number}'),
+                    trailing: Text('Sales: \$${displayProducts[index].price.toStringAsFixed(2)}'),
+                  );
+                } else {
+                  return ListTile(
+                    title: Text(categoryList[index].name),
+                    subtitle: Text('Number Sold: ${categoryList[index].totalNumber}'),
+                    trailing: Text('Sales: \$${categoryList[index].totalPrice.toStringAsFixed(2)}'),
+                  );
+                }
               },
             ),
           ),

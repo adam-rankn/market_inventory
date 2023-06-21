@@ -1,32 +1,39 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/sales_listing.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 Future<List<Sale>> getSales(String period) async {
   DateTime now = DateTime.now();
   DateTime startOfWeek = DateTime(now.year, now.month, now.day - now.weekday + 1);
   DateTime startOfMonth = DateTime(now.year, now.month);
   DateTime startOfYear = DateTime(now.year);
-
   Timestamp startTimestamp = Timestamp.fromDate(now.toUtc());
+
+  tz.initializeTimeZones();
+  var mountainTime = tz.getLocation('America/Denver');
 
   switch (period) {
     case 'DAY':
-      startTimestamp = Timestamp.fromDate(now.toUtc());
+      var now = tz.TZDateTime.now(mountainTime);
+      startTimestamp = Timestamp.fromDate(tz.TZDateTime(mountainTime, now.year, now.month, now.day).toUtc());
       break;
     case 'WEEK':
-      startTimestamp = Timestamp.fromDate(startOfWeek.toUtc());
+      var lastWeek = tz.TZDateTime.now(mountainTime).subtract(const Duration(days: 7));
+      startTimestamp = Timestamp.fromDate(tz.TZDateTime(mountainTime, lastWeek.year, lastWeek.month, lastWeek.day).toUtc());
       break;
     case 'MONTH':
-      startTimestamp = Timestamp.fromDate(startOfMonth.toUtc());
+      var now = tz.TZDateTime.now(mountainTime);
+      startTimestamp = Timestamp.fromDate(tz.TZDateTime(mountainTime, now.year, now.month, 1).toUtc());
       break;
     case 'YEAR':
-      startTimestamp = Timestamp.fromDate(startOfYear.toUtc());
+      var now = tz.TZDateTime.now(mountainTime);
+      startTimestamp = Timestamp.fromDate(tz.TZDateTime(mountainTime, now.year, 1, 1).toUtc());
       break;
     default:
-      startTimestamp = Timestamp.fromDate(now.toUtc());
+      startTimestamp = Timestamp.fromDate(tz.TZDateTime.now(mountainTime).toUtc());
   }
-
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   CollectionReference salesRef = firestore.collection('sales');
