@@ -76,6 +76,12 @@ class _SalesFilterScreenState extends State<Sales> {
   }
 
   void combineCategories(List<Sale> sales) {
+    for (Category category in categoryList) {
+
+        category.totalNumber = 0;
+        category.totalPrice = 0;
+
+    }
     // Loop over each sale
     for (Sale sale in sales) {
       // Loop over each category
