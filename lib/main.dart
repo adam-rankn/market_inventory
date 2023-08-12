@@ -1,5 +1,8 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'firebase/add_order.dart';
+import 'models/bundle.dart';
 import 'sales.dart';
 import 'setup.dart';
 import 'models/product.dart';
@@ -80,6 +83,18 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
     Product(title: 'Feta', image: 'assets/images/water.png', price: 4.0),
   ];
 
+  final List<Bundle> _bundles = [
+    Bundle(
+      title: "Pita and tzatziki",
+      products: [
+        Product(title: 'Tzatziki 235g', image: 'assets/images/water.png', price: 7.0),
+        Product(title: 'Pita', image: 'assets/images/soft_drink.png', price: 3.0),
+      ],
+      price: 8.0,
+    ),
+    // Add more bundles here
+  ];
+
   Map<Product, int> _currentOrder = {};
   double _totalPrice = 0.0;
   double _discount = 0.0;
@@ -97,9 +112,18 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
       } else {
         _currentOrder[product] = 1;
       }
-      _totalPrice += product.price; // or adjust price based on product
+      updateTotals();
     });
   }
+
+  void _setQuantity(Product product, int num)  {
+    setState(() {
+      _currentOrder[product] = num;
+      updateTotals();
+    });
+  }
+
+
 
   void _removeFromOrder(Product product) {
     setState(() {
@@ -110,7 +134,6 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
           _currentOrder.remove(product);
         }
         _totalPrice -= product.price; // or adjust price based on product
-        //todo preec
       }
     });
   }
@@ -121,6 +144,7 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
     _currentOrder.forEach((product, count) {
       // Access the key (Product) using the variable 'product'
       // Access the value (int) using the variable 'count'
+      //todo discount
       updates.add(updateSalesTotals(_selectedLocation,product.title,count,product.price*count));
     });
     await Future.wait(updates);
@@ -129,6 +153,11 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
   void updateTotals(){
 
     setState(() {
+      double price = 0.0;
+      _currentOrder.forEach((product, number) {
+        price += product.price * number;
+      });
+      _totalPrice = price;
       if (_discountIsPercentage) {
         grandTotal = _totalPrice * (1 - _discount / 100);
       } else {
@@ -237,6 +266,7 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                         return ListTile(
                           leading: Image.network('https://www.mygreekdish.com/wp-content/uploads/2013/10/Greek-Saganaki-recipe-Pan-seared-Greek-cheese-appetizer-scaled.jpg'),
                           title: Text(product.title),
+                          subtitle: Text('\$ ${product.price.toStringAsFixed(2)}'),
                           trailing: SizedBox(
                               width: 120,
                               height: 36,
@@ -245,9 +275,65 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                                   _addToOrder(product);
                                   updateTotals();
                                 },
-
+                                onLongPress: () {
+                                  final TextEditingController controller = TextEditingController();
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text('Enter a number'),
+                                        content: TextField(
+                                          controller: controller,
+                                          keyboardType: TextInputType.number,
+                                          onSubmitted: (String newNum) {
+                                            _setQuantity(product, int.parse(newNum));
+                                          },
+                                        ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: const Text('OK'),
+                                            onPressed: () {
+                                              int newNum = int.parse(controller.text);
+                                              _setQuantity(product, newNum);
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
                                 child: const Text('Add'),
                               )
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  Text('Bundles', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), // This is the section title
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _bundles.length,
+                      itemBuilder: (context, index) {
+                        Bundle bundle = _bundles[index];
+                        return ListTile(
+                          title: Text('Bundle ${index + 1}'),
+                          subtitle: Text('\$ ${bundle.price.toStringAsFixed(2)}'),
+                          // This will list the product titles in the bundle
+                          leading: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: bundle.products.map((product) => Text(product.title)).toList(),
+                          ),
+                          trailing: SizedBox(
+                            width: 120,
+                            height: 36,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                // Add logic to add bundle to order
+                              },
+                              child: const Text('Add Bundle'),
+                            ),
                           ),
                         );
                       },
@@ -278,6 +364,7 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                         String title = product.title;
                         return ListTile(
                           title: Text('$title x $quantity'),
+                          subtitle: Text('\$ ${(product.price * quantity).toStringAsFixed(2)}'),
                           trailing: ElevatedButton(
                             onPressed: () {
                               _removeFromOrder(product);
@@ -373,19 +460,43 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: Container(
                       alignment: Alignment.center,
-                      child: SizedBox(height: 60.0, width: 400.0,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            _finalizeOrder();
-                            setState(() {
-                              _currentOrder.clear();
-                               _totalPrice = 0.0;
-                              _discount = 0.0;
-                              _discountIsPercentage = true;
-                            });
-                          },
-                          child: const Text('Finalize Order'),
-                        ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 60.0,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _currentOrder.clear();
+                                    _totalPrice = 0.0;
+                                    _discount = 0.0;
+                                    _discountIsPercentage = true;
+                                  });
+                                },
+                                child: const Text('Clear Order'),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16), // add some space between the buttons
+                          Expanded(
+                            child: SizedBox(
+                              height: 60.0,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  _finalizeOrder();
+                                  setState(() {
+                                    _currentOrder.clear();
+                                    _totalPrice = 0.0;
+                                    _discount = 0.0;
+                                    _discountIsPercentage = true;
+                                  });
+                                },
+                                child: const Text('Finalize Order'),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   )

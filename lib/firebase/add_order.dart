@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+  import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/product.dart';
 
 Future<void> updateSalesTotals(String market,String item,int num , double saleAmount) async {

@@ -4,4 +4,4 @@ class Product {
     double price;
 
     Product({required this.title, required this.image, required this.price});
-}
+}  
