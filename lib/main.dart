@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'firebase/add_order.dart';
 import 'models/bundle.dart';
+import 'models/saleable_item.dart';
 import 'sales.dart';
 import 'setup.dart';
 import 'models/product.dart';
@@ -40,17 +41,18 @@ class MyApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            textStyle:
+                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
         primarySwatch: Colors.blue,
       ),
       home: FoodTruckScreen(),
       routes: {
-    // Define the routes for the other pages
-    '/sales': (context) =>  Sales(),
-    '/setup': (context) => const Setup(),
-    },
+        // Define the routes for the other pages
+        '/sales': (context) => Sales(),
+        '/setup': (context) => const Setup(),
+      },
     );
   }
 }
@@ -61,41 +63,77 @@ class FoodTruckScreen extends StatefulWidget {
 }
 
 class _FoodTruckScreenState extends State<FoodTruckScreen> {
-  final List<Product> _products = [
-    Product(title: 'Tzatziki 235g', image: 'assets/images/water.png', price: 7.0),
-    Product(title: 'Tzatziki 500g', image: 'assets/images/fries.png', price: 3.0),
-    Product(title: 'Tiro-Kafterio', image: 'assets/images/fries.png', price: 7.0),
-    Product(title: 'Hummus 250g', image: 'assets/images/onion_rings.png', price: 5.0),
-    Product(title: 'Hummus 500g', image: 'assets/images/soft_drink.png', price: 3.0),
-
-    Product(title: 'Saganaki', image: 'assets/images/saganaki.png', price: 10.0),
-    Product(title: 'Dolmades', image: 'assets/images/dolmades.png', price: 8.0),
-    Product(title: 'Gyros', image: 'assets/images/hot_dog.png', price: 6.0),
-    Product(title: 'Olives', image: 'assets/images/fries.png', price: 3.0),
-    Product(title: 'Baklava', image: 'assets/images/onion_rings.png', price: 5.0),
-    Product(title: 'Pita', image: 'assets/images/soft_drink.png', price: 3.0),
-    Product(title: 'Mousaka', image: 'assets/images/water.png', price: 15.0),
-    Product(title: 'Keftedes', image: 'assets/images/fries.png', price: 10.0),
-    Product(title: 'Pastichio', image: 'assets/images/onion_rings.png', price: 15.0),
-    Product(title: 'Tarama', image: 'assets/images/soft_drink.png', price: 7.0),
-
-
-    Product(title: 'Feta', image: 'assets/images/water.png', price: 4.0),
-  ];
-
-  final List<Bundle> _bundles = [
+  final List<SaleableItem> _products = [
+    Product(
+        title: 'Tzatziki 235g',
+        image: 'assets/images/water.png',
+        productPrice: 7.0),
+    Product(
+        title: 'Tzatziki 500g',
+        image: 'assets/images/fries.png',
+        productPrice: 3.0),
+    Product(
+        title: 'Tiro-Kafterio',
+        image: 'assets/images/fries.png',
+        productPrice: 7.0),
+    Product(
+        title: 'Hummus 250g',
+        image: 'assets/images/onion_rings.png',
+        productPrice: 5.0),
+    Product(
+        title: 'Hummus 500g',
+        image: 'assets/images/soft_drink.png',
+        productPrice: 3.0),
+    Product(
+        title: 'Saganaki',
+        image: 'assets/images/saganaki.png',
+        productPrice: 10.0),
+    Product(
+        title: 'Dolmades',
+        image: 'assets/images/dolmades.png',
+        productPrice: 8.0),
+    Product(
+        title: 'Gyros', image: 'assets/images/hot_dog.png', productPrice: 6.0),
+    Product(
+        title: 'Olives', image: 'assets/images/fries.png', productPrice: 3.0),
+    Product(
+        title: 'Baklava',
+        image: 'assets/images/onion_rings.png',
+        productPrice: 5.0),
+    Product(
+        title: 'Pita',
+        image: 'assets/images/soft_drink.png',
+        productPrice: 3.0),
+    Product(
+        title: 'Mousaka', image: 'assets/images/water.png', productPrice: 15.0),
+    Product(
+        title: 'Keftedes',
+        image: 'assets/images/fries.png',
+        productPrice: 10.0),
+    Product(
+        title: 'Pastichio',
+        image: 'assets/images/onion_rings.png',
+        productPrice: 15.0),
+    Product(
+        title: 'Tarama',
+        image: 'assets/images/soft_drink.png',
+        productPrice: 7.0),
+    Product(title: 'Feta', image: 'assets/images/water.png', productPrice: 4.0),
     Bundle(
-      title: "Pita and tzatziki",
       products: [
-        Product(title: 'Tzatziki 235g', image: 'assets/images/water.png', price: 7.0),
-        Product(title: 'Pita', image: 'assets/images/soft_drink.png', price: 3.0),
+        Product(
+            title: 'Tzatziki 235g',
+            image: 'https://www.mygreekdish.com/wp-content/uploads/2013/10/Greek-Saganaki-recipe-Pan-seared-Greek-cheese-appetizer-scaled.jpg',
+            productPrice: 7.0),
+        Product(
+            title: 'Pita', image:   'https://www.mygreekdish.com/wp-content/uploads/2013/10/Greek-Saganaki-recipe-Pan-seared-Greek-cheese-appetizer-scaled.jpg', productPrice: 3.0),
       ],
-      price: 8.0,
+      productPrice: 9.0,
+      title: '| Pit + Tzatziki',
     ),
-    // Add more bundles here
   ];
 
-  Map<Product, int> _currentOrder = {};
+  Map<SaleableItem, int> _currentOrder = {};
   double _totalPrice = 0.0;
   double _discount = 0.0;
   bool _discountIsPercentage = true;
@@ -103,9 +141,7 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
 
   double grandTotal = 0;
 
-
-
-  void _addToOrder(Product product) {
+  void _addToOrder(SaleableItem product) {
     setState(() {
       if (_currentOrder.containsKey(product)) {
         _currentOrder[product] = _currentOrder[product]! + 1;
@@ -116,16 +152,26 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
     });
   }
 
-  void _setQuantity(Product product, int num)  {
+  void _addBundleToOrder(Bundle bundle) {
+/*    for (var product in bundle.products) {
+      // Logic for adding each product to order
+      _addToOrder(product);
+    }*/
+  _addToOrder(bundle);
+
+    // Override the price to be the bundle price
+    _totalPrice += bundle.price;
+    updateTotals();
+  }
+
+  void _setQuantity(SaleableItem product, int num) {
     setState(() {
       _currentOrder[product] = num;
       updateTotals();
     });
   }
 
-
-
-  void _removeFromOrder(Product product) {
+  void _removeFromOrder(SaleableItem product) {
     setState(() {
       if (_currentOrder.containsKey(product)) {
         if (_currentOrder[product] != null && _currentOrder[product]! > 1) {
@@ -145,13 +191,13 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
       // Access the key (Product) using the variable 'product'
       // Access the value (int) using the variable 'count'
       //todo discount
-      updates.add(updateSalesTotals(_selectedLocation,product.title,count,product.price*count));
+      updates.add(updateSalesTotals(
+          _selectedLocation, product.title, count, product.price * count));
     });
     await Future.wait(updates);
   }
 
-  void updateTotals(){
-
+  void updateTotals() {
     setState(() {
       double price = 0.0;
       _currentOrder.forEach((product, number) {
@@ -168,16 +214,16 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
 
   final TextEditingController _searchController = TextEditingController();
 
-  List<Product> _getFilteredProducts() {
-    List<Product> products;
+  List<SaleableItem> _getFilteredProducts() {
+    List<SaleableItem> products;
 
     if (_searchController.text.isEmpty) {
       products = _products;
     } else {
       products = _products
           .where((product) => product.title
-          .toLowerCase()
-          .contains(_searchController.text.toLowerCase()))
+              .toLowerCase()
+              .contains(_searchController.text.toLowerCase()))
           .toList();
     }
 
@@ -206,7 +252,6 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
           }).toList(),
         ),
         actions: <Widget>[
-
           IconButton(
             icon: const Icon(Icons.attach_money_outlined),
             tooltip: 'Sales',
@@ -250,7 +295,7 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                             _searchController.clear();
                             setState(() {
                               updateTotals();
-                            });  // This triggers a rebuild
+                            }); // This triggers a rebuild
                           },
                           icon: const Icon(Icons.clear),
                         ),
@@ -262,80 +307,96 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                     child: ListView.builder(
                       itemCount: _getFilteredProducts().length,
                       itemBuilder: (context, index) {
-                        Product product = _getFilteredProducts()[index];
-                        return ListTile(
-                          leading: Image.network('https://www.mygreekdish.com/wp-content/uploads/2013/10/Greek-Saganaki-recipe-Pan-seared-Greek-cheese-appetizer-scaled.jpg'),
-                          title: Text(product.title),
-                          subtitle: Text('\$ ${product.price.toStringAsFixed(2)}'),
-                          trailing: SizedBox(
-                              width: 120,
-                              height: 36,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  _addToOrder(product);
-                                  updateTotals();
-                                },
-                                onLongPress: () {
-                                  final TextEditingController controller = TextEditingController();
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: const Text('Enter a number'),
-                                        content: TextField(
-                                          controller: controller,
-                                          keyboardType: TextInputType.number,
-                                          onSubmitted: (String newNum) {
-                                            _setQuantity(product, int.parse(newNum));
-                                          },
-                                        ),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            child: const Text('OK'),
-                                            onPressed: () {
-                                              int newNum = int.parse(controller.text);
-                                              _setQuantity(product, newNum);
-                                              Navigator.of(context).pop();
+                        SaleableItem product = _getFilteredProducts()[index];
+
+                        if (product is Product) {
+                          return ListTile(
+                            leading: Image.network(
+                                'https://www.mygreekdish.com/wp-content/uploads/2013/10/Greek-Saganaki-recipe-Pan-seared-Greek-cheese-appetizer-scaled.jpg'),
+                            title: Text(product.title),
+                            subtitle:
+                                Text('\$ ${product.price.toStringAsFixed(2)}'),
+                            trailing: SizedBox(
+                                width: 120,
+                                height: 36,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    _addToOrder(product);
+                                    updateTotals();
+                                  },
+                                  onLongPress: () {
+                                    final TextEditingController controller =
+                                        TextEditingController();
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: const Text('Enter a number'),
+                                          content: TextField(
+                                            controller: controller,
+                                            keyboardType: TextInputType.number,
+                                            onSubmitted: (String newNum) {
+                                              _setQuantity(
+                                                  product, int.parse(newNum));
                                             },
                                           ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                },
-                                child: const Text('Add'),
-                              )
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  Text('Bundles', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), // This is the section title
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _bundles.length,
-                      itemBuilder: (context, index) {
-                        Bundle bundle = _bundles[index];
-                        return ListTile(
-                          title: Text('Bundle ${index + 1}'),
-                          subtitle: Text('\$ ${bundle.price.toStringAsFixed(2)}'),
-                          // This will list the product titles in the bundle
-                          leading: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: bundle.products.map((product) => Text(product.title)).toList(),
-                          ),
-                          trailing: SizedBox(
-                            width: 120,
-                            height: 36,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                // Add logic to add bundle to order
-                              },
-                              child: const Text('Add Bundle'),
-                            ),
-                          ),
-                        );
+                                          actions: <Widget>[
+                                            TextButton(
+                                              child: const Text('OK'),
+                                              onPressed: () {
+                                                int newNum =
+                                                    int.parse(controller.text);
+                                                _setQuantity(product, newNum);
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: const Text('Add'),
+                                )),
+                          );
+                        }
+                        else if (product is Bundle) {
+                          return Column(
+                            children: [
+                              ListTile(
+                                // Display the bundle details (like title and total price)
+                                title: Text(product.title),
+                                subtitle: Text('\$ ${product.price.toStringAsFixed(2)}'),
+                                trailing: SizedBox(
+                                    width: 120,
+                                    height: 48,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        _addBundleToOrder(product);
+                                        updateTotals();
+                                      },
+                                      child: const Text('Add'),
+                                    )
+                                ),
+                              ),
+                              ...product.products.map((product) => Padding(
+                                padding: const EdgeInsets.only(left: 20.0), // Indentation
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16.0),
+                                  leading: Image.network(
+                                    product.image,
+                                    width: 40, // Making image a bit smaller
+                                    height: 40,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  title: Text(
+                                    product.title,
+                                    style: const TextStyle(fontSize: 20.0),
+                                  ),
+                                ),
+                              )).toList(),
+                            ],
+                          );
+                        }
                       },
                     ),
                   ),
@@ -359,12 +420,14 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                     child: ListView.builder(
                       itemCount: _currentOrder.length,
                       itemBuilder: (context, index) {
-                        Product product = _currentOrder.keys.elementAt(index);
+                        SaleableItem product =
+                            _currentOrder.keys.elementAt(index);
                         int quantity = _currentOrder.values.elementAt(index);
                         String title = product.title;
                         return ListTile(
                           title: Text('$title x $quantity'),
-                          subtitle: Text('\$ ${(product.price * quantity).toStringAsFixed(2)}'),
+                          subtitle: Text(
+                              '\$ ${(product.price * quantity).toStringAsFixed(2)}'),
                           trailing: ElevatedButton(
                             onPressed: () {
                               _removeFromOrder(product);
@@ -393,10 +456,13 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                           children: [
                             Expanded(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal:48.0),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 48.0),
                                 child: TextField(
-                                 // controller: _discountController,
-                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  // controller: _discountController,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
                                   decoration: const InputDecoration(
                                     hintText: 'Enter discount',
                                   ),
@@ -416,8 +482,10 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                                   return DropdownMenuItem<String>(
                                     value: value,
                                     child: Container(
-                                      height: 60,  // Same as the height of the Row
-                                      alignment: Alignment.center,  // To center the text vertically
+                                      height: 60,
+                                      // Same as the height of the Row
+                                      alignment: Alignment.center,
+                                      // To center the text vertically
                                       child: Text(
                                         value,
                                         style: const TextStyle(
@@ -441,7 +509,6 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                     ],
                   ),
                   const SizedBox(height: 16.0),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -449,7 +516,6 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                         'Grand Total:',
                         style: TextStyle(fontSize: 24.0),
                       ),
-
                       Text(
                         '\$${grandTotal.toStringAsFixed(2)}',
                         style: const TextStyle(fontSize: 24.0),
@@ -478,7 +544,8 @@ class _FoodTruckScreenState extends State<FoodTruckScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 16), // add some space between the buttons
+                          const SizedBox(width: 16),
+                          // add some space between the buttons
                           Expanded(
                             child: SizedBox(
                               height: 60.0,

@@ -1,7 +1,12 @@
-class Product {
-    String title;
-    String image;
-    double price;
+import 'package:sales_tracker/models/saleable_item.dart';
 
-    Product({required this.title, required this.image, required this.price});
-}  
+class Product extends SaleableItem {
+    final String title;
+    final String image;
+    final double productPrice;
+
+    Product({required this.title, required this.image, required this.productPrice});
+
+    @override
+    double get price => productPrice;
+}

@@ -1,10 +1,16 @@
 import 'package:sales_tracker/models/product.dart';
+import 'package:sales_tracker/models/saleable_item.dart';
 
-class Bundle {
-  final String title;
+class Bundle extends SaleableItem {
   final List<Product> products;
-  final double price;
+
+  final double productPrice;
+  final String title;
+
+  @override
+  double get price => productPrice;
+  
+  Bundle( {required this.products, required this.productPrice,required this.title});
 
 
-  Bundle({required this.title, required this.products, required this.price});
 }
